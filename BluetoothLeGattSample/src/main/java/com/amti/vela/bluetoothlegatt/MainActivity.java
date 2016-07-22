@@ -1,5 +1,6 @@
 package com.amti.vela.bluetoothlegatt;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,6 +15,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -38,11 +40,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -67,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
     public static final int VBAT_TIME_LENGTH = 5000;
     public static final int CONNECT_TIME_LENGTH = 15000;
+    public static final int DEVICE_INFO_TIME_LENGTH = 3000;
     public static final int RSSI_TIME_LENGTH = 3000;
 
     public static final String NOTIFICATION_SETTINGS_PACKAGE = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
@@ -88,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private ViewPagerAdapter viewPagerAdapter;
+    LinearLayout linearLayout;
     DeviceFragment deviceFragment;
     ColorPickerFragment colorPickerFragment;
     boolean initColors = true;
@@ -131,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                     break;
 
                 case DialogInterface.BUTTON_NEGATIVE:
-                    Toast.makeText(MainActivity.this, "Some parts of this app will be disabled. You can manually enable this in the settings app under Notifications -> Notification Access", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(MainActivity.this, "Some parts of this app will be disabled. You can manually enable this in the settings app under Notifications -> Notification Access", Toast.LENGTH_LONG).show();
                     break;
             }
         }
@@ -151,7 +158,11 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                     prefs.edit().putBoolean(Preferences.PREFS_NEVER_ASK_KEY, mNeverAskChecked).apply();
                     break;
             }
-
+            if(Build.VERSION.SDK_INT >= 23)
+            {
+                if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+                { requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1); }
+            }
             notificationListenerInit();
         }
     };
@@ -178,20 +189,22 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
         @Override
         public void run() {
-            if(notificationBuzzerCount < 4)
+            if(mBluetoothLeService != null)
             {
-                if(notificationBuzzerCount % 2 == 0)
-                    mBluetoothLeService.writeCharacteristic(colorCharacteristic,"V" );
-                else
-                    mBluetoothLeService.writeCharacteristic(colorCharacteristic,"v" );
+                if(notificationBuzzerCount < 4)
+                {
+                    if(notificationBuzzerCount % 2 == 0)
+                        mBluetoothLeService.writeCharacteristic(colorCharacteristic,"V" );
+                    else
+                        mBluetoothLeService.writeCharacteristic(colorCharacteristic,"v" );
 
-                notificationBuzzerCount++;
-                mHandler.postDelayed(notificationRunnable, 500);
-            }
-            else
-            {
-                notificationBuzzerCount = 0;
-            }
+                    notificationBuzzerCount++;
+                    mHandler.postDelayed(notificationRunnable, 500);
+                }
+                else
+                {
+                    notificationBuzzerCount = 0;
+                }
             /*
             mBluetoothLeService.writeCharacteristic(colorCharacteristic,"255000000" );
             Thread.sleep(500);
@@ -202,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             mBluetoothLeService.writeCharacteristic(colorCharacteristic,"000000000" );
             Thread.sleep(500);
             */
+            }
         }
     };
 
@@ -225,6 +239,19 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             stopService(new Intent(MainActivity.this, NotificationService.class));
             finish();
             Toast.makeText(getApplicationContext(), "Could not connect to the device", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    Runnable getDeviceInfoRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            if(mBluetoothLeService.getServiceBound())
+                unregisterReceiver(mGattUpdateReceiver);
+            unbindService(mServiceConnection);
+            stopService(new Intent(MainActivity.this, NotificationService.class));
+            finish();
+            Toast.makeText(getApplicationContext(), "Could not retrieve necklace info", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -327,11 +354,10 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         //start listening to notifications
         startService(new Intent(MainActivity.this, NotificationService.class));
         //notification service for detecting when new notifications are received
-        if(!NotificationService.notificationsBound)
-        {
+        boolean notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());
+        if(!notificationAccessEnabled)
             notificationEnableDialog.show();
-        }
-        return NotificationService.notificationsBound;
+        return notificationAccessEnabled;
     }
 
     void initGui()
@@ -353,6 +379,8 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.action_bar_dark_blue));
         }
+
+        linearLayout = new LinearLayout(getApplicationContext());
 
         //set up fragment_device and fragments
         viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -480,20 +508,17 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             final String action = intent.getAction();
 
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                mConnected = true;
-                mHandler.removeCallbacksAndMessages(null);
-                invalidateOptionsMenu();
 
+                mConnected = true;
+                mHandler.removeCallbacks(connectRunnable);
+                mHandler.postDelayed(getDeviceInfoRunnable, DEVICE_INFO_TIME_LENGTH);
                 connectingDialog.setMessage("Getting necklace information...");
+
                 mHandler.postDelayed(readRssiRunnable, RSSI_TIME_LENGTH);
 
                 deviceFragment.setDevice(mDeviceName);
 
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                mNeverAsking = prefs.getBoolean(Preferences.PREFS_NEVER_ASK_KEY, false);
-                mAutoConnecting = prefs.getBoolean(Preferences.PREFS_AUTO_CONNECT_KEY, false);
-                if(!mNeverAsking && !mAutoConnecting)
-                    saveAutoConnectDialog.show();
+                invalidateOptionsMenu();
             }
             else if(BluetoothLeService.ACTION_RSSI_DATA_AVAILABLE.equals(action))
             {
@@ -590,10 +615,31 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                         mBluetoothLeService.setCharacteristicNotification(characteristic, true);
                     }
                 }
+
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                mNeverAsking = prefs.getBoolean(Preferences.PREFS_NEVER_ASK_KEY, false);
+                mAutoConnecting = prefs.getBoolean(Preferences.PREFS_AUTO_CONNECT_KEY, false);
+                if(!mNeverAsking && !mAutoConnecting)
+                {
+                    saveAutoConnectDialog.show();
+                }
+                else
+                {
+                    if(Build.VERSION.SDK_INT >= 23)
+                    {
+                        if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+                        { requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1); }
+                    }
+
+                    notificationListenerInit();
+                }
             }
 
             else if(BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action))
             {
+                mHandler.removeCallbacks(getDeviceInfoRunnable);
+                connectingDialog.dismiss();
+
                 String uuid = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
                 String rxString = intent.getStringExtra(BluetoothLeService.EXTRA_DATA).split("\n")[0];
                 if(rxString == null || uuid == null)
@@ -611,8 +657,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                         sendMessage();
                         break;
                 }
-
-                connectingDialog.dismiss();
             }
         }
     };
@@ -624,7 +668,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             Intent intent = new Intent(this, DeviceScanActivity.class);
             // use System.currentTimeMillis() to have a unique ID for the pending intent
             PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
-
 
             Bitmap bm = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
             notificationBuilder = new NotificationCompat.Builder(getApplicationContext())
@@ -742,7 +785,10 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         if(mBluetoothLeService.getServiceBound())
             unregisterReceiver(mGattUpdateReceiver);
         stopService(new Intent(MainActivity.this, NotificationService.class));
-        unbindService(mServiceConnection);
+        try
+        {
+            unbindService(mServiceConnection);
+        } catch (IllegalArgumentException e) { }
         mBluetoothLeService = null;
         mHandler.removeCallbacksAndMessages(null);
     }

@@ -28,6 +28,7 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
     static EditTextPreference device;
     static CheckBoxPreference autoConnect, neverAsk;
     static Preference notificationButton;
+    static boolean notificationAccessEnabled;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,8 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.action_bar_dark_blue));
         }
 
+        notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());;
+
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
         getFragmentManager().beginTransaction().replace(R.id.settings_frame, new SettingsFragment()).commit();
@@ -65,10 +68,11 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         if(device != null)
         {
             device.setSummary(deviceString);
-            device.setEnabled(autoConnect.isChecked());
+            //device.setEnabled(autoConnect.isChecked());
+            device.setEnabled(false);
         }
 
-        String title = NotificationService.notificationsBound ? "Enable notification access (enabled)" : "Enable notification access (disabled)";
+        String title = notificationAccessEnabled ? "Enable notification access (enabled)" : "Enable notification access (disabled)";
         if(notificationButton != null)
             notificationButton.setTitle(title);
     }
@@ -121,6 +125,7 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
     @Override
     protected void onResume() {
         super.onResume();
+        notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());
         setSummaries();
         MainActivity.mInSettings = true;
     }

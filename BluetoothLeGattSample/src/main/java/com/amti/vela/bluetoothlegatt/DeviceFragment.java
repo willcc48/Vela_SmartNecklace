@@ -173,12 +173,6 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
         msgText.setText(prefs.getString(Preferences.PREFS_SMS_TEXT, ""));
         toText.setText("To: " + contactName);
 
-        if(Build.VERSION.SDK_INT >= 23)
-        {
-            if (getActivity().checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
-            { requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1); }
-        }
-
         updateBattery(0);
 
         return scrollView;
@@ -258,6 +252,7 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
                         {
                             Toast.makeText(getActivity(), "You selected an invalid SMS contact", Toast.LENGTH_LONG).show();
                             contactNumber = null;
+                            contactName = "";
                             msgText.setText("");
                         }
 

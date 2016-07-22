@@ -22,7 +22,7 @@ public class ColorPickerFragment extends android.support.v4.app.Fragment impleme
     SaturationBar mSaturationBar;
     int mPrevColor;
     ValueBar mValueBar;
-int a;
+
     private final static int kFirstTimeColor = 0x0000ff;
     private int mSelectedColor;
     int r, g, b;

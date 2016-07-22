@@ -12,7 +12,6 @@ import android.support.v4.content.LocalBroadcastManager;
 public class NotificationService extends NotificationListenerService {
 
     Context context;
-    public static boolean notificationsBound;
 
     @Override
     public void onCreate() {
@@ -22,16 +21,6 @@ public class NotificationService extends NotificationListenerService {
         ContentResolver contentResolver = context.getContentResolver();
         String enabledNotificationListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners");
         String packageName = context.getPackageName();
-
-        // check to see if the enabledNotificationListeners String contains our package name
-        if (enabledNotificationListeners == null || !enabledNotificationListeners.contains(packageName))
-        {
-            notificationsBound = false;
-        }
-        else
-        {
-            notificationsBound = true;
-        }
     }
 
     @Override
@@ -49,14 +38,12 @@ public class NotificationService extends NotificationListenerService {
     @Override
     public IBinder onBind(Intent intent) {
         IBinder mIBinder = super.onBind(intent);
-        notificationsBound = true;
         return mIBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
         boolean mOnUnbind = super.onUnbind(intent);
-        notificationsBound = true;
         return mOnUnbind;
     }
 }

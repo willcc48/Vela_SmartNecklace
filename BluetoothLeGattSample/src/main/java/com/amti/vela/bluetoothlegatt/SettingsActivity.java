@@ -128,6 +128,7 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());
         setSummaries();
         MainActivity.mInSettings = true;
+        int a;
     }
 
     @Override

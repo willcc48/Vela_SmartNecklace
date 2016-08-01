@@ -31,10 +31,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -53,6 +55,7 @@ import com.amti.vela.bluetoothlegatt.MainActivity;
 import com.amti.vela.bluetoothlegatt.SettingsActivity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -67,8 +70,8 @@ public class DeviceScanActivity extends AppCompatActivity {
     private boolean mScanning;
     private Handler leScanHandler;
 
-    private ArrayList<BluetoothDevice> mLeDevicesList;
-    private CustomListAdapter devicesAdapter;
+    private ArrayList<String> mLeDevicesList;
+    CustomListAdapter devicesAdapter;
     ListView deviceListView;
     SwipeRefreshLayout swipeContainer;
 
@@ -76,6 +79,7 @@ public class DeviceScanActivity extends AppCompatActivity {
 
     boolean enableBtFlag;
     boolean checkedBt;
+    boolean doNothing = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -138,7 +142,7 @@ public class DeviceScanActivity extends AppCompatActivity {
         deviceListView = (ListView)findViewById(R.id.listView);
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
 
-        mLeDevicesList = new ArrayList<BluetoothDevice>();
+        mLeDevicesList = new ArrayList<String>();
         devicesAdapter = new CustomListAdapter(this, R.layout.custom_listview_item);
         deviceListView.setAdapter(devicesAdapter);
 
@@ -169,11 +173,15 @@ public class DeviceScanActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapter, View v, int position,
                                     long arg3)
             {
-                BluetoothDevice device = mLeDevicesList.get(position);
+                String device = mLeDevicesList.get(position);
                 if (device == null) return;
                 final Intent intent = new Intent(DeviceScanActivity.this, MainActivity.class);
-                String deviceName = device.getName() == null ? "Unknown Device" : device.getName();
-                intent.putExtra(MainActivity.EXTRAS_DEVICE,  deviceName + "\n" + device.getAddress());
+                String deviceName = device.split("\n")[0] == null ? "Unknown Device" : device.split("\n")[0];
+                if(deviceName.equals("null"))
+                {
+                    deviceName = "Unknown Device";
+                }
+                intent.putExtra(MainActivity.EXTRAS_DEVICE,  deviceName + "\n" + device.split("\n")[1]);
                 if (mScanning) {
                     scanLeDevice(false);
                     mScanning = false;
@@ -189,6 +197,7 @@ public class DeviceScanActivity extends AppCompatActivity {
                 // Your code to refresh the list here.
                 // Make sure you call swipeContainer.setRefreshing(false)
                 // once the bt request has completed successfully
+                doNothing = false;
                 clearDevices();
                 scanLeDevice(true);
             }
@@ -236,38 +245,50 @@ public class DeviceScanActivity extends AppCompatActivity {
 
     void clearDevices()
     {
-        mLeDevicesList.clear();
         devicesAdapter.clear();
+        mLeDevicesList.clear();
         devicesAdapter.notifyDataSetChanged();
     }
 
     private void scanLeDevice(final boolean enable) {
         //pentuple check bt
-        if(!enableBtIfNeeded())
+        if(!doNothing)
         {
-            //start scanning
-            if (enable)
+            if(!enableBtIfNeeded())
             {
-                // this handler stops the scan after a period of time.
-                leScanHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mScanning = false;
-                        disableActionButton = false;
-                        setSwipeContainerRefresh(false);
-                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                        Log.e(TAG, "Stopped scan");
-                        invalidateOptionsMenu();
-                    }
-                }, SCAN_PERIOD);
+                //start scanning
+                if (enable)
+                {
+                    // this handler stops the scan after a period of time.
+                    leScanHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScanning = false;
+                            disableActionButton = false;
+                            setSwipeContainerRefresh(false);
+                            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                            Log.e(TAG, "Stopped scan");
+                            invalidateOptionsMenu();
+                        }
+                    }, SCAN_PERIOD);
 
-                mScanning = true;
-                disableActionButton = true;
-                setSwipeContainerRefresh(true);
-                mBluetoothAdapter.startLeScan(mLeScanCallback);
-                Log.e(TAG, "Started scan");
+                    mScanning = true;
+                    disableActionButton = true;
+                    setSwipeContainerRefresh(true);
+                    mBluetoothAdapter.startLeScan(mLeScanCallback);
+                    Log.e(TAG, "Started scan");
+                }
+
+                //stop scanning
+                else
+                {
+                    mScanning = false;
+                    disableActionButton = false;
+                    setSwipeContainerRefresh(false);
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    Log.e(TAG, "Stopped scan");
+                }
             }
-
             //stop scanning
             else
             {
@@ -277,8 +298,8 @@ public class DeviceScanActivity extends AppCompatActivity {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 Log.e(TAG, "Stopped scan");
             }
-            invalidateOptionsMenu();
         }
+        invalidateOptionsMenu();
     }
 
     // Device scan callback.
@@ -292,9 +313,9 @@ public class DeviceScanActivity extends AppCompatActivity {
                     public void run() {
                         //for the love of god, do not add the device if it already exists
                         boolean exists = false;
-                        for (BluetoothDevice btDevice : mLeDevicesList)
+                        for (String btDevice : mLeDevicesList)
                         {
-                            if(device.getAddress().equals(btDevice.getAddress()))
+                            if(device.getAddress().equals(btDevice.split("\n")[1]))
                             {
                                 exists = true;
                                 break;
@@ -302,7 +323,7 @@ public class DeviceScanActivity extends AppCompatActivity {
                         }
                         if(!exists)
                         {
-                            mLeDevicesList.add(device);
+                            mLeDevicesList.add(device.getName()+"\n"+device.getAddress());
                             if(device.getName() != null)
                                 devicesAdapter.add(new ClipData.Item(device.getName()+"\n"+device.getAddress()));
                             else
@@ -329,21 +350,12 @@ public class DeviceScanActivity extends AppCompatActivity {
         {
             swipeContainer.setRefreshing(false);
         }
-        if(disableActionButton)
-            menu.findItem(R.id.menu_search).setEnabled(false);
-        else
-            menu.findItem(R.id.menu_search).setEnabled(true);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
-            case R.id.menu_search:
-                mLeDevicesList.clear();
-                devicesAdapter.clear();
-                scanLeDevice(true);
-                return true;
             case R.id.menu_settings:
                 Intent intent = new Intent(DeviceScanActivity.this, SettingsActivity.class);
                 startActivity(intent);
@@ -378,11 +390,15 @@ public class DeviceScanActivity extends AppCompatActivity {
         enableBtFlag = false;
         // User chose not to enable Bluetooth.
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-
+            doNothing = true;
         }
         else if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
             if(isBtCompat())
+            {
                 autoConnectIfEnabled();
+                doNothing = false;
+            }
+            doNothing = true;
         }
 
         super.onActivityResult(requestCode, resultCode, data);

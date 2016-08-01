@@ -1,7 +1,7 @@
 [
     {
-        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi-v4\\ic_battery_std_white.png",
-        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\mipmap-mdpi\\ic_battery_std_white.png"
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi-v4\\ic_settings_white.png",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\mipmap-mdpi\\ic_settings_white.png"
     },
     {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi-v4\\ic_launcher.png",
@@ -10,6 +10,10 @@
     {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi-v4\\ic_bluetooth_connected_white.png",
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\mipmap-mdpi\\ic_bluetooth_connected_white.png"
+    },
+    {
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi-v4\\ic_battery_std_white.png",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\mipmap-mdpi\\ic_battery_std_white.png"
     },
     {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi-v4\\ic_bluetooth_searching_white.png",

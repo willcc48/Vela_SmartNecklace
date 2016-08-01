@@ -58,7 +58,7 @@
         </activity>
         <activity
             android:name="com.amti.vela.bluetoothlegatt.MainActivity"
-            android:label="Color Selection"
+            android:label="Your Necklace"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />

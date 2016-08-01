@@ -10,7 +10,8 @@
         android:text="Text goes here"
         android:textSize="25dp"
         android:paddingLeft="10dp"
-        android:paddingTop="5dp"/>
+        android:paddingTop="5dp"
+        android:textStyle="bold"/>
 
     <TextView
         android:id="@+id/list_item_subtext"
@@ -18,7 +19,7 @@
         android:layout_height="wrap_content"
         android:text="Subtext goes here"
         android:paddingBottom="5dp"
-        android:paddingTop="3dp"
+        android:paddingTop="1dp"
         android:layout_marginLeft="10dp"/>
 
 </LinearLayout>

@@ -68,8 +68,6 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         if(device != null)
         {
             device.setSummary(deviceString);
-            //device.setEnabled(autoConnect.isChecked());
-            device.setEnabled(false);
         }
 
         String title = notificationAccessEnabled ? "Enable notification access (enabled)" : "Enable notification access (disabled)";
@@ -128,7 +126,7 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());
         setSummaries();
         MainActivity.mInSettings = true;
-        int a;
+
     }
 
     @Override

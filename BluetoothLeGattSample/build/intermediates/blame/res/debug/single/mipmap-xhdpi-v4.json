@@ -40,6 +40,10 @@
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\mipmap-xhdpi\\ic_bluetooth_searching.png"
     },
     {
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi-v4\\ic_settings_white.png",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\mipmap-xhdpi\\ic_settings_white.png"
+    },
+    {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi-v4\\ic_color_palette_white.png",
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\mipmap-xhdpi\\ic_color_palette_white.png"
     }

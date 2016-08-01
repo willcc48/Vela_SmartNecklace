@@ -278,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             mDeviceAddress = deviceString.split("\n")[1];
         }
 
+
         initGui();
 
         mHandler = new Handler() {
@@ -796,14 +797,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_activity_main, menu);
-        if (mConnected) {
-            menu.findItem(R.id.menu_bt).setTitle("Disconnect");
-            menu.findItem(R.id.menu_bt).setIcon(R.mipmap.ic_bluetooth_connected_white);
-            menu.findItem(R.id.menu_bt).setVisible(true);
-        } else {
-            menu.findItem(R.id.menu_bt).setVisible(false);
-        }
-
         return true;
     }
 
@@ -829,9 +822,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
-            case R.id.menu_bt:
-                disconnectFromDevice();
-                return true;
             case R.id.menu_settings:
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);

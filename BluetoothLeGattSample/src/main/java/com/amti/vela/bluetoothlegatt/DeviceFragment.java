@@ -19,6 +19,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -51,7 +52,6 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
 
     String contactNumber;
     String contactName;
-    String text;
 
     static final int PICK_CONTACT=1;
     SharedPreferences prefs;
@@ -84,19 +84,33 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String newName = input.getText().toString();
+                if(newName.trim().isEmpty())
+                {
+                    Toast.makeText(getActivity(), "You entered an invalid name for your necklace", Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+
+                }
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+                );
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+                );
             }
         });
 
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                builder.setTitle("Type a device name");
+                builder.setTitle("Enter a name for your necklace");
 
                 // Set up the input
                 input = new EditText(getActivity());

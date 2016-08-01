@@ -54,7 +54,7 @@
         </activity>
 
         <activity android:name=".MainActivity"
-            android:label="Color Selection" android:screenOrientation="portrait"
+            android:label="Your Necklace" android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" android:launchMode="singleTask" />
 
         <activity android:name=".SettingsActivity"

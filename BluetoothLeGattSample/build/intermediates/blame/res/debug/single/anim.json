@@ -8,6 +8,18 @@
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\exploded-aar\\com.android.support\\design\\23.1.1\\res\\anim\\design_snackbar_in.xml"
     },
     {
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\fadeout_slow.xml",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\fadeout_slow.xml"
+    },
+    {
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\slide_down_in.xml",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\slide_down_in.xml"
+    },
+    {
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\slidein_list.xml",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\slidein_list.xml"
+    },
+    {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\abc_shrink_fade_out_from_bottom.xml",
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.1.1\\res\\anim\\abc_shrink_fade_out_from_bottom.xml"
     },
@@ -16,20 +28,28 @@
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\slidein.xml"
     },
     {
-        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\fade_and_scale_out.xml",
-        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\fade_and_scale_out.xml"
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\slide_up_out.xml",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\slide_up_out.xml"
     },
     {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\abc_slide_out_bottom.xml",
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.1.1\\res\\anim\\abc_slide_out_bottom.xml"
     },
     {
-        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\fadein.xml",
-        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\fadein.xml"
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\fade_and_drop_out.xml",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\fade_and_drop_out.xml"
     },
     {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\abc_slide_in_top.xml",
         "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.1.1\\res\\anim\\abc_slide_in_top.xml"
+    },
+    {
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\fadein.xml",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\fadein.xml"
+    },
+    {
+        "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\fadein_slow.xml",
+        "source": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\src\\main\\res\\anim\\fadein_slow.xml"
     },
     {
         "merged": "C:\\Users\\colto\\OneDrive\\Documents\\GitHub\\Vela_SmartNecklace\\BluetoothLeGattSample\\build\\intermediates\\res\\merged\\debug\\anim\\abc_popup_enter.xml",

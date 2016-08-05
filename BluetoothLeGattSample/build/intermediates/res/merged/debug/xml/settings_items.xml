@@ -5,24 +5,24 @@
 
     <PreferenceCategory android:title="Auto Connect">
 
-        <EditTextPreference
+        <Preference
             android:title="Your Necklace"
             android:key="com.amti.vela.bluetooth.autoconnect.device"
             android:defaultValue=""
-            android:selectable="false" />
+            android:selectable="true" />
 
         <CheckBoxPreference
-            android:title="Auto connect to necklace"
+            android:title="Auto connect to your necklace"
             android:key="com.amti.vela.bluetooth.autoconnect"
             android:defaultValue="false"/>
 
         <CheckBoxPreference
             android:title="Never ask to auto connect"
+            android:summary="Disables the auto connect feature"
             android:key="com.amti.vela.bluetooth.autoconnect.neverask"
             android:defaultValue="false"/>
 
     </PreferenceCategory>
-
     <PreferenceCategory android:title="Notifications">
 
         <Preference

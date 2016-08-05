@@ -1,0 +1,31 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/message_bar"
+    android:background="@color/colorMessageBar">
+
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:text="Enable"
+        style="?buttonBarPositiveButtonStyle"
+        android:id="@+id/button_enable"
+        android:textColor="@color/colorActionBarWhite"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@+id/text_enable"
+        android:gravity="center_vertical"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="Something is not enabled"
+        android:layout_alignParentStart="true"
+        android:textColor="@color/colorActionBarWhite"
+        android:id="@+id/text_enable"
+        android:layout_toStartOf="@id/button_enable"
+        android:paddingLeft="11dp"
+        android:paddingTop="11dp"/>
+
+</RelativeLayout>

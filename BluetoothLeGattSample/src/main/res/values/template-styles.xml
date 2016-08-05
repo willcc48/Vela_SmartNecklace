@@ -21,28 +21,28 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!--
         <item name="android:actionBarStyle">@style/MyTheme.ActionBarStyle</item>
-        <item name="actionBarTheme">@style/ThemeOverlay.AppTheme.ActionBar</item>
-        <item name="colorPrimary">@color/action_bar_light_blue</item>
-        <item name="colorPrimaryDark">@color/action_bar_dark_blue</item>
-        -->
+        <item name="actionBarTheme">@style/ThemeOverlay.AppTheme.ActionBar</item>-->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorStatusBar</item>
+
     </style>
 
 
     <style name="MyTheme.ActionBarStyle" parent="@android:style/Widget.Holo.Light.ActionBar">
         <item name="android:actionMenuTextColor">@style/MyTheme.ActionBar.TitleTextStyle</item>
-        <item name="android:background">@color/action_bar_light_blue</item>-->
+        <item name="android:background">@color/colorPrimary</item>-->
         <item name="android:icon">@android:color/transparent</item>
     </style>
 
     <style name="ThemeOverlay.AppTheme.ActionBar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <!-- title text color -->
-        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorPrimary">@color/colorActionBarWhite</item>
         <!-- subtitle text color -->
-        <item name="android:textColorSecondary">@color/black</item>
+        <item name="android:textColorSecondary">@color/colorActionBarWhite</item>
     </style>
 
     <style name="MyTheme.ActionBar.TitleTextStyle" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
-        <item name="android:textColor">@color/action_bar_white</item>
+        <item name="android:textColor">@color/colorActionBarWhite</item>
     </style>
 
     <!-- not sure why this is needed but it is -->

@@ -21,40 +21,58 @@
     android:background="@drawable/background">
 
     <include
+        android:id="@+id/message_bar"
+        layout="@layout/messagebar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_below="@+id/tool_bar" />
+
+    <include
         android:id="@+id/tool_bar"
         layout="@layout/toolbar"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Pull down to refresh"
-        android:textColor="#ababab"
-        android:visibility="gone"/>
-
     <FrameLayout android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/tool_bar"
-        android:id="@+id/device_search_frame">
+        android:layout_below="@+id/message_bar"
+        android:id="@+id/device_search_frame" >
 
         <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/swipeContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
 
-            <ListView
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/listView"
-                android:paddingTop="10dp"
-                android:paddingStart="2dp"/>
+                android:id="@+id/listview_holder"
+                >
+
+                <ListView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/listView"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pull down to refresh"
+                    android:textColor="#ababab"
+                    android:id="@+id/hint_text"
+                    android:layout_centerInParent="true"
+                    android:visibility="gone"/>
+
+            </RelativeLayout>
 
         </android.support.v4.widget.SwipeRefreshLayout>
 
-        <View android:layout_width="match_parent"
-            android:layout_height="5dp"
-            android:background="@drawable/toolbar_dropshadow"/>
-
     </FrameLayout>
+
+
+    <View android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:background="@drawable/toolbar_dropshadow"
+        android:id="@+id/action_bar_shadow"
+        android:layout_below="@+id/tool_bar" />
 
 </RelativeLayout>

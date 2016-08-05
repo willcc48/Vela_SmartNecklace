@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="action_bar_light_blue">#2196F3</color>
-    <color name="action_bar_dark_blue">#1976D2</color>
+    <color name="colorPrimary">#2196f2</color>
+    <color name="colorStatusBar">#1976D2</color>
 
-    <color name="action_bar_white">@color/material_grey_50</color>
-    <color name="action_button_dark_blue">#0029be</color>
-    <color name="tab_indicator">#0d00ff</color>
+    <color name="colorMessageBar">#d2191f</color>
 
-    <color name="swipe_refresh_dark_green">#4CAF50</color>
+    <color name="colorActionBarWhite">@color/material_grey_50</color>
+    <color name="colorTabIndicator">#0d00ff</color>
 
-    <color name="black">#000000</color>
+    <color name="colorSwipeRefreshGreen">#4CAF50</color>
 
-    <color name="battery_green">#19a91f</color>
-    <color name="battery_red">#ff0004</color>
+    <color name="colorBlack">#000000</color>
 
-    <color name="color_alizarin">#e74c3c</color>
+    <color name="colorBatteryGreen">#19a91f</color>
+    <color name="colorBatteryRed">#ff0004</color>
 
-    <color name="tab_unselected_color">#7affffff</color>
+    <color name="colorBatteryUnfinished">#d2d2d2</color>
 
 </resources>

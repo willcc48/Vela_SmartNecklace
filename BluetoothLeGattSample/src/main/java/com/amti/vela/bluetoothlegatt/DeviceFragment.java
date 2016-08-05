@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +32,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.lzyzsd.circleprogress.ArcProgress;
+import com.github.lzyzsd.circleprogress.CircleProgress;
+import com.github.lzyzsd.circleprogress.DonutProgress;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,15 +45,16 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
     AlertDialog.Builder builder;
     EditText input;
     ScrollView scrollView;
-    ImageView batteryFiller;
-    ImageView criticalFiller;
-    TextView batteryText;
+    //ImageView batteryFiller;
+    //ImageView criticalFiller;
+    //TextView batteryText;
     TextView deviceNameText;
     Button editButton;
     Spinner msgTypeSpinner;
     Button chooseContactButton;
     EditText msgText;
     TextView toText;
+    ArcProgress circleBattery;
 
     String contactNumber;
     String contactName;
@@ -67,9 +73,10 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
         prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
         scrollView = (ScrollView)inflater.inflate(R.layout.fragment_device, container, false);
-        batteryFiller = (ImageView) scrollView.findViewById(R.id.battery_filler);
-        criticalFiller = (ImageView) scrollView.findViewById(R.id.critical_filler);
-        batteryText = (TextView) scrollView.findViewById(R.id.battery_text);
+        //batteryFiller = (ImageView) scrollView.findViewById(R.id.battery_filler);
+        //criticalFiller = (ImageView) scrollView.findViewById(R.id.critical_filler);
+        //batteryText = (TextView) scrollView.findViewById(R.id.battery_text);
+        circleBattery = (ArcProgress)scrollView.findViewById(R.id.arc_progress);
         deviceNameText = (TextView) scrollView.findViewById(R.id.device_name);
         editButton = (Button) scrollView.findViewById(R.id.deviceNameEdit);
         msgTypeSpinner = (Spinner) scrollView.findViewById(R.id.msgType);
@@ -194,6 +201,7 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
 
     public void updateBattery(int batteryLevel)
     {
+        /*
         int px;
         if(batteryLevel <= LOW_BATTERY_THRESHOLD)
         {
@@ -219,6 +227,19 @@ public class DeviceFragment extends android.support.v4.app.Fragment{
         }
 
         batteryText.setText(Integer.toString(batteryLevel) + "%");
+        */
+        if(batteryLevel <= LOW_BATTERY_THRESHOLD)
+        {
+            circleBattery.setFinishedStrokeColor(Color.rgb(255, 0, 0));
+            circleBattery.setTextColor(Color.rgb(255, 0, 0));
+        }
+
+        else
+        {
+            circleBattery.setFinishedStrokeColor(Color.rgb(33, 150, 242));
+            circleBattery.setTextColor(Color.rgb(33, 150, 242));
+        }
+        circleBattery.setProgress(batteryLevel);
     }
 
     public void setDevice(String name)

@@ -44,7 +44,7 @@
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".bluetooth.DeviceScanActivity"
+        <activity android:name=".DeviceScanActivity"
             android:label="Vela SmartNecklace"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -66,7 +66,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.amti.vela.bluetoothlegatt.bluetooth.BluetoothLeService" android:enabled="true"/>
+        <service android:name=".BluetoothLeService" android:enabled="true"/>
 
         <service android:name="com.amti.vela.bluetoothlegatt.NotificationService"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"

@@ -26,7 +26,6 @@ import android.os.Message;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.service.notification.StatusBarNotification;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -40,21 +39,22 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.amti.vela.bluetoothlegatt.bluetooth.BluetoothLeService;
-import com.amti.vela.bluetoothlegatt.bluetooth.DeviceScanActivity;
 
 /**
  * For a given BLE device, this Activity provides the user interface to connect, display data,
@@ -65,23 +65,24 @@ import com.amti.vela.bluetoothlegatt.bluetooth.DeviceScanActivity;
 public class MainActivity extends AppCompatActivity implements DialogInterface.OnCancelListener {
     private final static String TAG = MainActivity.class.getSimpleName();
 
-    public static final String EXTRAS_DEVICE = "DEVICE";
+    public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
+    public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
     public static final String ANALOG_OUT_UUID = "866ad1ee-05c4-4f4e-9ef4-548790668ad1";
     public static final String VBAT_UUID = "982754c4-fbde-4d57-a01b-6c81f2f0499e";
     public static final String NOTIFICATION_UUID = "982754c4-fbde-4d57-a01b-6c81f2f05353";
 
     public static final int VBAT_TIME_LENGTH = 5000;
     public static final int CONNECT_TIME_LENGTH = 15000;
-    public static final int DEVICE_INFO_TIME_LENGTH = 3000;
-    public static final int RSSI_TIME_LENGTH = 3000;
+    public static final int DEVICE_INFO_TIME_LENGTH = 5000;
+    public static final int RSSI_TIME_LENGTH = 5000;
 
     public static final String NOTIFICATION_SETTINGS_PACKAGE = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
 
     public static final int SEND_COLOR_VALUES = 0;
     public static final int SEND_DEP_VALUE = 1;
 
-    private String mDeviceAddress = "Unknown Address";
-    String mDeviceName = "Unknown Device";
+    private String mDeviceAddress;
+    String mDeviceName;
     private BluetoothLeService mBluetoothLeService;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
     private boolean mConnected = false;
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
     ColorPickerFragment colorPickerFragment;
     boolean initColors = true;
 
-    int[] mVbatArray = new int[4];
+    int[] mVbatArray = new int[8];
 
     int[] mRssiArray = new int[10];
 
@@ -113,8 +114,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
     boolean manualDisconnect = false;
 
-    AlertDialog.Builder notificationEnableDialog;
-
     public static final int mRssiNotificationId = 1;
     NotificationManager mNotifyMgr;
     NotificationCompat.Builder notificationBuilder;
@@ -123,26 +122,19 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
     boolean mNotificationExists = false;
 
-    DialogInterface.OnClickListener notificationDialogClickListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            switch (which){
-                case DialogInterface.BUTTON_POSITIVE:
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                        startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
-                    }
-                    else
-                    {
-                        startActivity(new Intent(NOTIFICATION_SETTINGS_PACKAGE));
-                    }
-                    break;
+    FrameLayout fragmentLayout;
 
-                case DialogInterface.BUTTON_NEGATIVE:
-                    //Toast.makeText(MainActivity.this, "Some parts of this app will be disabled. You can manually enable this in the settings app under Notifications -> Notification Access", Toast.LENGTH_LONG).show();
-                    break;
-            }
-        }
-    };
+    RelativeLayout messageBar;
+    List<String> permissionList;
+    TextView messageBarText;
+    Button messageBarButton;
+    Animation slideDownIn;
+    Animation slideUpOut;
+    Animation fadeinAnim;
+    Animation fadeoutAnim;
+
+    public static String MESSAGEBAR_NOTIFICATION_ACCESS = "This app needs notification access";
+    public static String MESSAGEBAR_PERMISSIONS = "This app need permissions";
 
     DialogInterface.OnClickListener saveAutoConnectListener = new DialogInterface.OnClickListener() {
         @Override
@@ -151,17 +143,13 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
                     prefs.edit().putBoolean(Preferences.PREFS_AUTO_CONNECT_KEY, true).apply();
-                    prefs.edit().putString(Preferences.PREFS_DEVICE_KEY, mDeviceName + "\n" + mDeviceAddress).apply();
+                    prefs.edit().putString(Preferences.PREFS_DEVICE_NAME_KEY, mDeviceName).apply();
+                    prefs.edit().putString(Preferences.PREFS_DEVICE_ADDRESS_KEY, mDeviceAddress).apply();
                     break;
 
                 case DialogInterface.BUTTON_NEGATIVE:
                     prefs.edit().putBoolean(Preferences.PREFS_NEVER_ASK_KEY, mNeverAskChecked).apply();
                     break;
-            }
-            if(Build.VERSION.SDK_INT >= 23)
-            {
-                if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
-                { requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1); }
             }
             notificationListenerInit();
         }
@@ -238,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             unbindService(mServiceConnection);
             stopService(new Intent(MainActivity.this, NotificationService.class));
             finish();
-            Toast.makeText(getApplicationContext(), "Could not connect to the device", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Could not connect to your necklace", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -251,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             unbindService(mServiceConnection);
             stopService(new Intent(MainActivity.this, NotificationService.class));
             finish();
-            Toast.makeText(getApplicationContext(), "Could not retrieve necklace info", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Could not get your necklace info", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -271,13 +259,8 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         overridePendingTransition(R.anim.slidein, R.anim.fadeout);
 
         final Intent intent = getIntent();
-        String deviceString = intent.getStringExtra(EXTRAS_DEVICE);
-        if(deviceString.split("\n").length == 2)
-        {
-            mDeviceName = deviceString.split("\n")[0];
-            mDeviceAddress = deviceString.split("\n")[1];
-        }
-
+        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
+        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
         initGui();
 
@@ -307,13 +290,9 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
         LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, new IntentFilter("Msg"));
 
-        notificationEnableDialog = new AlertDialog.Builder(MainActivity.this);
-        notificationEnableDialog.setMessage("This app wants to enable notification access in the settings app.")
-                .setPositiveButton("OK", notificationDialogClickListener).setNegativeButton("Cancel", notificationDialogClickListener).setCancelable(false);
-
         connectingDialog = new ProgressDialog(this);
         connectingDialog.setTitle("Connecting");
-        connectingDialog.setMessage("Please wait while connecting to " + mDeviceName + "...");
+        connectingDialog.setMessage("Connecting to " + mDeviceName + "...");
         connectingDialog.setOnCancelListener(this);
         connectingDialog.setCanceledOnTouchOutside(false);
         connectingDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
@@ -326,7 +305,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         });
 
         connectingDialog.show();
-        mHandler.postDelayed(connectRunnable, CONNECT_TIME_LENGTH);
 
         mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     }
@@ -350,35 +328,100 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         return my_characteristic;
     }
 
-    boolean notificationListenerInit()
+    void notificationListenerInit()
     {
         //start listening to notifications
         startService(new Intent(MainActivity.this, NotificationService.class));
-        //notification service for detecting when new notifications are received
-        boolean notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());
-        if(!notificationAccessEnabled)
-            notificationEnableDialog.show();
-        return notificationAccessEnabled;
+        checkMessageBarState();
     }
 
     void initGui()
     {
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
+        fragmentLayout = (FrameLayout)findViewById(R.id.fragment_layout);
+
+        fadeinAnim = AnimationUtils.loadAnimation(this, R.anim.fadein_slow);
+        fadeoutAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fadeout_slow);
+
+        fadeoutAnim.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                fragmentLayout.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        fragmentLayout.setVisibility(View.INVISIBLE);
+
+        messageBarText = (TextView) findViewById(R.id.text_enable);
+        messageBar = (RelativeLayout) findViewById(R.id.message_bar);
+        messageBarButton = (Button) findViewById(R.id.button_enable);
+        messageBar.setVisibility(View.GONE);
+
+        slideDownIn = AnimationUtils.loadAnimation(this, R.anim.slide_down_in);
+        slideUpOut = AnimationUtils.loadAnimation(this, R.anim.slide_up_out);
+
+        messageBarButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(messageBarText.getText().toString().equals(MESSAGEBAR_NOTIFICATION_ACCESS))
+                {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1)
+                        startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
+                    else
+                        startActivity(new Intent(NOTIFICATION_SETTINGS_PACKAGE));
+                }
+                else if(messageBarText.getText().toString().equals(MESSAGEBAR_PERMISSIONS))
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        String[] permissionArray = new String[permissionList.size()];
+                        permissionArray = permissionList.toArray(permissionArray);
+                        requestPermissions(permissionArray, 1);
+                    }
+
+                checkMessageBarState();
+            }
+        });
+
+        slideUpOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                messageBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
 
         //action bar
         final Toolbar actionBarToolBar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(actionBarToolBar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBarToolBar.setTitleTextColor(ContextCompat.getColor(this, R.color.action_bar_white));
+        actionBarToolBar.setTitleTextColor(ContextCompat.getColor(this, R.color.colorActionBarWhite));
 
         //status bar color
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.setStatusBarColor(ContextCompat.getColor(this, R.color.action_bar_dark_blue));
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
 
         linearLayout = new LinearLayout(getApplicationContext());
@@ -407,18 +450,18 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         device.setCustomView(iconEdit);
         dev.setCustomView(iconDev);
 
-        tabLayout.addTab(color, 0);
-        tabLayout.addTab(device, 1);
+        tabLayout.addTab(device, 0);
+        tabLayout.addTab(color, 1);
         tabLayout.addTab(dev, 2);
 
         iconDev.setImageAlpha(130);
         iconEdit.setImageAlpha(255);
         iconColor.setImageAlpha(130);
 
-        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.tab_indicator));
+        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.colorTabIndicator));
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
-        viewPager.setCurrentItem(1);
+        viewPager.setCurrentItem(0);
 
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -429,13 +472,13 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                 {
                     case 0:
                         iconDev.setImageAlpha(130);
-                        iconEdit.setImageAlpha(130);
-                        iconColor.setImageAlpha(255);
+                        iconEdit.setImageAlpha(255);
+                        iconColor.setImageAlpha(130);
                         break;
                     case 1:
                         iconDev.setImageAlpha(130);
-                        iconEdit.setImageAlpha(255);
-                        iconColor.setImageAlpha(130);
+                        iconEdit.setImageAlpha(130);
+                        iconColor.setImageAlpha(255);
                         break;
                     case 2:
                         iconDev.setImageAlpha(255);
@@ -475,6 +518,97 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         saveAutoConnectDialog.setView(checkBoxView);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case 1:
+                checkMessageBarState();
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    void checkMessageBarState()
+    {
+        boolean showPermissionRequest = false;
+
+        if(Build.VERSION.SDK_INT >= 23)
+        {
+            permissionList = new ArrayList<>();
+
+            if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+            {
+                permissionList.add(Manifest.permission.SEND_SMS);
+                showPermissionRequest = true;
+            }
+
+            if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
+            {
+                permissionList.add(Manifest.permission.READ_CONTACTS);
+                showPermissionRequest = true;
+            }
+
+            if(showPermissionRequest)
+                showMessageBarIfNeeded(MESSAGEBAR_PERMISSIONS);
+            else
+                hideMessageBarIfNeeded(MESSAGEBAR_PERMISSIONS);
+        }
+
+        if(!showPermissionRequest)
+        {
+            boolean notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),
+                    "enabled_notification_listeners").contains(getApplicationContext().getPackageName());
+            if(!notificationAccessEnabled)
+                showMessageBarIfNeeded(MESSAGEBAR_NOTIFICATION_ACCESS);
+            else
+            {
+                hideMessageBarIfNeeded(MESSAGEBAR_NOTIFICATION_ACCESS);
+
+            }
+        }
+    }
+
+    void showMessageBarIfNeeded(String text)
+    {
+        if(!messageBarText.getText().toString().equals(text))
+            showMessageBar(text);
+    }
+
+    void showMessageBar(String text)
+    {
+        messageBarText.setText(text);
+        messageBar.clearAnimation();
+        messageBar.startAnimation(slideDownIn);
+        messageBar.setVisibility(View.VISIBLE);
+
+        if(fragmentLayout.getVisibility() == View.VISIBLE)
+        {
+            fragmentLayout.startAnimation(fadeoutAnim);
+        }
+
+    }
+
+    void hideMessageBarIfNeeded(String text)
+    {
+        if(messageBar.getVisibility() == View.VISIBLE && messageBarText.getText().toString().equals(text))
+            hideMessageBar();
+        else if(messageBar.getVisibility() == View.GONE && fragmentLayout.getVisibility() == View.INVISIBLE && mConnected)
+        {
+            fragmentLayout.startAnimation(fadeinAnim);
+            fragmentLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    void hideMessageBar()
+    {
+        messageBar.clearAnimation();
+        messageBar.startAnimation(slideUpOut);
+
+        fragmentLayout.startAnimation(fadeinAnim);
+        fragmentLayout.setVisibility(View.VISIBLE);
+    }
+
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -497,6 +631,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         }
     };
 
+
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
     // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
@@ -518,8 +653,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                 mHandler.postDelayed(readRssiRunnable, RSSI_TIME_LENGTH);
 
                 deviceFragment.setDevice(mDeviceName);
-
-                invalidateOptionsMenu();
             }
             else if(BluetoothLeService.ACTION_RSSI_DATA_AVAILABLE.equals(action))
             {
@@ -564,13 +697,12 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             }
             else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
-                invalidateOptionsMenu();
                 if(!connectingDialog.isShowing())
                 {
                     if(!manualDisconnect) {
                         Toast.makeText(getApplicationContext(), "You have lost connection to the device", Toast.LENGTH_SHORT).show();
                         connectingDialog.setTitle("Connecting");
-                        connectingDialog.setMessage("Please wait while reconnecting to " + mDeviceName + "...");
+                        connectingDialog.setMessage("Reconnecting to " + mDeviceName + "...");
                         connectingDialog.setCanceledOnTouchOutside(false);
                         connectingDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
                             @Override
@@ -616,24 +748,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                         mBluetoothLeService.setCharacteristicNotification(characteristic, true);
                     }
                 }
-
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                mNeverAsking = prefs.getBoolean(Preferences.PREFS_NEVER_ASK_KEY, false);
-                mAutoConnecting = prefs.getBoolean(Preferences.PREFS_AUTO_CONNECT_KEY, false);
-                if(!mNeverAsking && !mAutoConnecting)
-                {
-                    saveAutoConnectDialog.show();
-                }
-                else
-                {
-                    if(Build.VERSION.SDK_INT >= 23)
-                    {
-                        if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
-                        { requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1); }
-                    }
-
-                    notificationListenerInit();
-                }
             }
 
             else if(BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action))
@@ -649,7 +763,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
                 {
                     case ANALOG_OUT_UUID:
                         if(initColors)
-                            processColorData(rxString);
+                            processColorDataAndInitDialog(rxString);
                         break;
                     case VBAT_UUID:
                         processVbatData(rxString);
@@ -690,18 +804,38 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
     void sendMessage()
     {
-        String msg = deviceFragment.getMsgText();
-        String number = deviceFragment.getContactNumber();
-
-        if(!msg.trim().isEmpty())
+        if(Build.VERSION.SDK_INT >= 23)
         {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(number, null, msg, null, null);
-            Log.d(TAG, "Sent SMS message to " + number + " " + msg);
+            if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+                requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1);
+            else
+            {
+                String msg = deviceFragment.getMsgText();
+                String number = deviceFragment.getContactNumber();
+
+                if(!msg.trim().equals(""))
+                {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(number, null, msg, null, null);
+                    Log.d(TAG, "Sent SMS message to " + number + " " + msg);
+                }
+            }
+        }
+        else
+        {
+            String msg = deviceFragment.getMsgText();
+            String number = deviceFragment.getContactNumber();
+
+            if(!msg.trim().equals(""))
+            {
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(number, null, msg, null, null);
+                Log.d(TAG, "Sent SMS message to " + number + " " + msg);
+            }
         }
     }
 
-    void processColorData(String rxString)
+    void processColorDataAndInitDialog(String rxString)
     {
         try {
             String colorString = rxString;
@@ -714,6 +848,20 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             colorPickerFragment.initColors(colorValue);
 
             initColors = false;
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            mNeverAsking = prefs.getBoolean(Preferences.PREFS_NEVER_ASK_KEY, false);
+            mAutoConnecting = prefs.getBoolean(Preferences.PREFS_AUTO_CONNECT_KEY, false);
+            if(!mNeverAsking && !mAutoConnecting)
+            {
+                saveAutoConnectDialog.show();
+            }
+            else
+            {
+                checkMessageBarState();
+
+                notificationListenerInit();
+            }
         } catch (NumberFormatException e) {
             Log.d(TAG, "Caught NumberFormatException while parsing rgb values");
         }
@@ -768,26 +916,37 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
         if(mInSettings)
             mInSettings = false;
 
+        if(connectingDialog.isShowing() && mConnected)
+            mHandler.postDelayed(getDeviceInfoRunnable, DEVICE_INFO_TIME_LENGTH);
+        else if(connectingDialog.isShowing() && !mConnected)
+            mHandler.postDelayed(connectRunnable, CONNECT_TIME_LENGTH);
+
         mPauseNotifications = false;
         mNotifyMgr.cancel(MainActivity.mRssiNotificationId);
+
+        checkMessageBarState();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        overridePendingTransition(R.anim.fadein, R.anim.fade_and_scale_out);
+        overridePendingTransition(R.anim.fadein, R.anim.fade_and_drop_out);
         mPauseNotifications = true;
         mNotificationExists = false;
+
+        if(connectingDialog.isShowing() && mConnected)
+            mHandler.removeCallbacks(getDeviceInfoRunnable);
+        else if(connectingDialog.isShowing() && !mConnected)
+            mHandler.removeCallbacks(connectRunnable);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mBluetoothLeService.getServiceBound())
-            unregisterReceiver(mGattUpdateReceiver);
         stopService(new Intent(MainActivity.this, NotificationService.class));
         try
         {
+            unregisterReceiver(mGattUpdateReceiver);
             unbindService(mServiceConnection);
         } catch (IllegalArgumentException e) { }
         mBluetoothLeService = null;

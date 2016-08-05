@@ -31,5 +31,10 @@
 
 
     <dimen name="battery_filler_default_width">275dp</dimen>
+    <dimen name="toolbarHeight">58dp</dimen>
+    <dimen name="extraMargin">30dp</dimen>
+
+    <dimen name="messagebarHeight">40dp</dimen>
+    <dimen name="messagebarMaxHeight">600dp</dimen>
 
 </resources>

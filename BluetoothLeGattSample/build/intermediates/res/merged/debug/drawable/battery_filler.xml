@@ -5,7 +5,7 @@
         android:radius="3dp"
         />
     <solid
-        android:color="@color/battery_green"/>
+        android:color="@color/colorBatteryGreen"/>
     <size
         android:width="@dimen/battery_filler_default_width"
         android:height="122dp"

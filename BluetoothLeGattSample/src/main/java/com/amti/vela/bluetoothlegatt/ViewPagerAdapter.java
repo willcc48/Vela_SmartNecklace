@@ -8,13 +8,13 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     ColorPickerFragment colorPickerFragment;
     DeviceFragment deviceFragment;
-    DevFragment devFragment;
+    DeveloperFragment devFragment;
 
     public ViewPagerAdapter(FragmentManager fm) {
         super(fm);
         colorPickerFragment = new ColorPickerFragment();
         deviceFragment = new DeviceFragment();
-        devFragment = new DevFragment();
+        devFragment = new DeveloperFragment();
     }
 
     @Override
@@ -22,9 +22,9 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         switch (position)
         {
             case 0:
-                return colorPickerFragment;
-            case 1:
                 return deviceFragment;
+            case 1:
+                return colorPickerFragment;
             case 2:
                 return devFragment;
         }
@@ -44,7 +44,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         return deviceFragment;
     }
 
-    public DevFragment getDevFragment()
+    public DeveloperFragment getDevFragment()
     {
         return devFragment;
     }
@@ -58,9 +58,9 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
     public CharSequence getPageTitle(int position) {
         switch (position){
             case 0:
-                return "Choose a Color";
-            case 1:
                 return "Your Necklace";
+            case 1:
+                return "Choose a Color";
             case 2:
                 return "Developer";
         }

@@ -1,11 +1,12 @@
 package com.amti.vela.bluetoothlegatt;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -19,13 +20,11 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.amti.vela.bluetoothlegatt.bluetooth.DeviceScanActivity;
-
 public class SettingsActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     static SharedPreferences prefs;
 
-    static EditTextPreference device;
+    static Preference device;
     static CheckBoxPreference autoConnect, neverAsk;
     static Preference notificationButton;
     static boolean notificationAccessEnabled;
@@ -47,7 +46,7 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.setStatusBarColor(ContextCompat.getColor(this, R.color.action_bar_dark_blue));
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
 
         notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());;
@@ -55,6 +54,7 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         prefs.registerOnSharedPreferenceChangeListener(this);
         getFragmentManager().beginTransaction().replace(R.id.settings_frame, new SettingsFragment()).commit();
+        getFragmentManager().executePendingTransactions();
     }
 
     @Override
@@ -64,11 +64,25 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
 
     public static void setSummaries()
     {
-        String deviceString = prefs.getString(Preferences.PREFS_DEVICE_KEY, "");
-        if(device != null)
+        String deviceName = prefs.getString(Preferences.PREFS_DEVICE_NAME_KEY, "");
+        String deviceAddress = prefs.getString(Preferences.PREFS_DEVICE_ADDRESS_KEY, "");
+        if(!deviceName.isEmpty())
         {
-            device.setSummary(deviceString);
+            device.setSummary(deviceName+"\n"+deviceAddress);
+            device.setEnabled(true);
+            autoConnect.setEnabled(true);
         }
+        else
+        {
+            device.setSummary("No necklace saved");
+            device.setEnabled(false);
+            autoConnect.setEnabled(false);
+        }
+
+        if (neverAsk.isChecked())
+            autoConnect.setEnabled(false);
+        else
+            autoConnect.setEnabled(true);
 
         String title = notificationAccessEnabled ? "Enable notification access (enabled)" : "Enable notification access (disabled)";
         if(notificationButton != null)
@@ -81,10 +95,19 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.settings_items);
 
-            device = (EditTextPreference)findPreference(Preferences.PREFS_DEVICE_KEY);
+            device = findPreference(Preferences.PREFS_DEVICE_KEY);
             autoConnect = (CheckBoxPreference)findPreference(Preferences.PREFS_AUTO_CONNECT_KEY);
             neverAsk = (CheckBoxPreference)findPreference(Preferences.PREFS_NEVER_ASK_KEY);
             notificationButton = findPreference(Preferences.PREFS_NOTIFICATION_KEY);
+
+            device.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    builder.setMessage("Do you want to forget your current necklace?").setPositiveButton("Yes", renameClickListener).setNegativeButton("Cancel", renameClickListener).show();
+                    return true;
+                }
+            });
 
             notificationButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
@@ -100,8 +123,41 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
                 }
             });
 
-            setSummaries();
+            neverAsk.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    if (neverAsk.isChecked())
+                    {
+                        autoConnect.setEnabled(false);
+                        autoConnect.setChecked(false);
+                    }
+                    else
+                    {
+                        autoConnect.setEnabled(true);
+                    }
+                    return true;
+                }
+            });
+                    setSummaries();
         }
+
+        DialogInterface.OnClickListener renameClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        prefs.edit().putString(Preferences.PREFS_DEVICE_KEY, "").apply();
+                        device.setSummary("No necklace saved");
+                        device.setEnabled(false);
+                        autoConnect.setEnabled(false);
+                        autoConnect.setChecked(false);
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        break;
+                }
+            }
+        };
     }
 
     @Override
@@ -126,13 +182,12 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         notificationAccessEnabled = Settings.Secure.getString(this.getContentResolver(),"enabled_notification_listeners").contains(getApplicationContext().getPackageName());
         setSummaries();
         MainActivity.mInSettings = true;
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        overridePendingTransition(R.anim.fadein, R.anim.fade_and_scale_out);
+        overridePendingTransition(R.anim.fadein, R.anim.fade_and_drop_out);
         MainActivity.mInSettings = false;
     }
 

@@ -678,7 +678,7 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
                 int a;
 
-                if (avgRssi <= -85)
+                if (avgRssi <= -88)
                 {
                     if(mPauseNotifications && !mInSettings && !mNotificationExists)
                     {
@@ -752,9 +752,6 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
             else if(BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action))
             {
-                mHandler.removeCallbacks(getDeviceInfoRunnable);
-                connectingDialog.dismiss();
-
                 String uuid = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
                 String rxString = intent.getStringExtra(BluetoothLeService.EXTRA_DATA).split("\n")[0];
                 if(rxString == null || uuid == null)
@@ -837,8 +834,8 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
 
     void processColorDataAndInitDialog(String rxString)
     {
+        String colorString = rxString;
         try {
-            String colorString = rxString;
             int r = Integer.parseInt(colorString.substring(0, 3));
             int g = Integer.parseInt(colorString.substring(3, 6));
             int b = Integer.parseInt(colorString.substring(6, 9));
@@ -847,26 +844,25 @@ public class MainActivity extends AppCompatActivity implements DialogInterface.O
             colorValue += (r << 16);
             colorPickerFragment.initColors(colorValue);
 
+            connectingDialog.dismiss();
+            mHandler.removeCallbacks(getDeviceInfoRunnable);
+            checkMessageBarState();
             initColors = false;
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             mNeverAsking = prefs.getBoolean(Preferences.PREFS_NEVER_ASK_KEY, false);
             mAutoConnecting = prefs.getBoolean(Preferences.PREFS_AUTO_CONNECT_KEY, false);
             if(!mNeverAsking && !mAutoConnecting)
-            {
                 saveAutoConnectDialog.show();
-            }
             else
-            {
-                checkMessageBarState();
-
                 notificationListenerInit();
-            }
+            //read first vbat value here so we don't need to wait 10 seconds
+            mBluetoothLeService.readCharacteristic(vbatCharacteristic);
         } catch (NumberFormatException e) {
             Log.d(TAG, "Caught NumberFormatException while parsing rgb values");
+            mBluetoothLeService.writeCharacteristic(colorCharacteristic, "000000000");
+            mBluetoothLeService.readCharacteristic(colorCharacteristic);
         }
-        //read first vbat value here so we don't need to wait 10 seconds
-        mBluetoothLeService.readCharacteristic(vbatCharacteristic);
     }
 
     void processVbatData(String rxString)
